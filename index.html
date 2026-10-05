@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Para Kizunae</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- CIELO canvas — z-index 0, pointer-events none -->
+  <canvas id="sky-canvas"></canvas>
+
+  <!-- SUELO PNG — z-index 1, pointer-events none, al inicio del DOM
+       pero detrás de todo gracias a z-index bajo -->
+  <img id="ground-img"
+       src="bg-removebg-preview.png"
+       alt=""
+       style="position:fixed;bottom:0;left:0;width:100%;height:100%;
+              object-fit:cover;object-position:bottom center;
+              pointer-events:none !important;z-index:1;
+              transition:opacity 3s ease;" />
+
+  <!-- ══════════════════════════════════════════════════
+       PORTADA
+  ═══════════════════════════════════════════════════ -->
+  <section id="scene-cover" class="scene active">
+    <div class="cover-content">
+      <div class="cover-ornament">✦</div>
+      <div class="cover-date fade-item" data-delay="400">4 de octubre de 2026</div>
+      <h1 class="cover-title fade-item" data-delay="800">
+        Feliz aniversario,<br/><span class="name-highlight">Kizunae</span>
+      </h1>
+      <p class="cover-subtitle fade-item" data-delay="1400">"Hice algo para ti."</p>
+      <!-- Botón sin fade-item para que sea clickeable de inmediato -->
+      <button class="btn-open" id="btn-open">
+        <span class="btn-text">Abrir</span>
+        <span class="btn-glow"></span>
+      </button>
+    </div>
+
+    <div class="sound-toggle" id="sound-toggle" title="Activar sonido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" class="sound-waves"/>
+        <line x1="1" y1="1" x2="23" y2="23" class="sound-off-line" style="display:none"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       FLIP BOOK
+  ═══════════════════════════════════════════════════ -->
+  <section id="scene-book" class="scene">
+    <div class="book-progress" id="book-progress">
+      <span class="bp-dot active" data-page="0"></span>
+      <span class="bp-dot" data-page="1"></span>
+      <span class="bp-dot" data-page="2"></span>
+      <span class="bp-dot" data-page="3"></span>
+    </div>
+
+    <div class="book-wrapper" id="book-wrapper">
+      <div class="book" id="book">
+
+        <!-- PÁGINA 1 -->
+        <div class="page" id="page-0">
+          <div class="page-front">
+            <div class="page-inner">
+              <div class="page-chapter-tag">I</div>
+              <p class="page-text first-text">Este año quería<br/>darte algo.</p>
+              <p class="page-text">Algo que pudiera guardar<br/>todo lo que a veces<br/>no sé cómo decirte.</p>
+              <p class="page-text italic accent">Así que hice esto.</p>
+              <div class="page-turn-hint">
+                <span class="turn-arrow">›</span>
+                <span class="turn-label">pasar página</span>
+              </div>
+            </div>
+            <div class="page-edge-shadow"></div>
+          </div>
+          <div class="page-back">
+            <div class="page-inner page-inner-back">
+              <div class="page-chapter-tag">II</div>
+              <p class="page-text">Hay momentos<br/>que no caben en palabras.</p>
+              <p class="page-text italic">Pero a veces los encuentras<br/>en los lugares más pequeños.</p>
+              <div class="memory-stars-hint">
+                <span class="star-icon">✦</span>
+                <span>Toca las estrellas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PÁGINA 2: Recuerdos interactivos -->
+        <div class="page" id="page-1">
+          <div class="page-front">
+            <div class="page-inner">
+              <div class="page-chapter-tag">II</div>
+              <canvas class="memory-canvas" id="memories-canvas"></canvas>
+              <div class="page-turn-hint">
+                <span class="turn-arrow">›</span>
+                <span class="turn-label">pasar página</span>
+              </div>
+            </div>
+            <div class="page-edge-shadow"></div>
+          </div>
+          <div class="page-back">
+            <div class="page-inner page-inner-back">
+              <div class="page-chapter-tag">III</div>
+              <p class="page-text">Quizá un aniversario<br/>sirve para recordar.</p>
+              <p class="page-text">Para mirar atrás.</p>
+              <p class="page-text">Para agradecer todo<br/>lo que hemos vivido.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PÁGINA 3: Nosotros -->
+        <div class="page" id="page-2">
+          <div class="page-front">
+            <div class="page-inner">
+              <div class="page-chapter-tag">III</div>
+              <p class="page-text">Pero también sirve<br/>para mirar hacia adelante.</p>
+              <p class="page-text italic accent large">Y eso es lo que más<br/>quiero hacer contigo.</p>
+              <canvas class="firefly-canvas" id="firefly-canvas"></canvas>
+              <div class="page-turn-hint">
+                <span class="turn-arrow">›</span>
+                <span class="turn-label">pasar página</span>
+              </div>
+            </div>
+            <div class="page-edge-shadow"></div>
+          </div>
+          <div class="page-back">
+            <div class="page-inner page-inner-back">
+              <div class="page-chapter-tag">IV</div>
+              <p class="page-text">Si pudiera darte un lugar...</p>
+              <p class="page-text">no te daría solamente<br/>una habitación.</p>
+              <p class="page-text">Ni solamente un jardín.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PÁGINA 4: Portal al universo -->
+        <div class="page" id="page-3">
+          <div class="page-front">
+            <div class="page-inner">
+              <div class="page-chapter-tag">IV</div>
+              <p class="page-text large accent glow">Te daría<br/>un mundo entero.</p>
+              <div class="portal-hint">
+                <div class="portal-glow"></div>
+                <p class="page-text small dim">Voltea para descubrirlo</p>
+              </div>
+              <div class="page-turn-hint final-hint">
+                <span class="turn-arrow glow-arrow">›</span>
+                <span class="turn-label">abrir el universo</span>
+              </div>
+            </div>
+            <div class="page-edge-shadow"></div>
+          </div>
+          <div class="page-back">
+            <div class="page-inner page-inner-back universe-portal">
+              <div class="portal-inner-glow"></div>
+              <p class="page-text large glow">Porque contigo...</p>
+              <p class="page-text glow">hasta lo pequeño puede<br/>convertirse en un universo.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="memory-popup" class="memory-popup hidden">
+      <div class="memory-popup-inner">
+        <p class="memory-text"></p>
+        <button class="memory-close">×</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       ESCENA CARTAS — 4 sobres con cartas largas
+       Flujo: libro → scene-letters → scene-universe
+  ═══════════════════════════════════════════════════ -->
+  <section id="scene-letters" class="scene">
+    <canvas id="letters-bg-canvas"></canvas>
+
+    <div class="letters-intro" id="letters-intro">
+      <p class="letters-intro-line" id="li-1">Antes de seguir...</p>
+      <p class="letters-intro-line" id="li-2">hay algo que quería darte.</p>
+    </div>
+
+    <div class="letters-grid" id="letters-grid">
+
+      <!-- Sobre 1 -->
+      <div class="envelope-wrap" id="env-0">
+        <div class="envelope" data-letter="0">
+          <div class="env-flap"></div>
+          <div class="env-body">
+            <div class="env-seal">✦</div>
+          </div>
+          <div class="env-shadow"></div>
+        </div>
+        <p class="env-title">Desde el primer momento</p>
+      </div>
+
+      <!-- Sobre 2 -->
+      <div class="envelope-wrap" id="env-1">
+        <div class="envelope" data-letter="1">
+          <div class="env-flap"></div>
+          <div class="env-body">
+            <div class="env-seal">✦</div>
+          </div>
+          <div class="env-shadow"></div>
+        </div>
+        <p class="env-title">En cada pensamiento</p>
+      </div>
+
+      <!-- Sobre 3 -->
+      <div class="envelope-wrap" id="env-2">
+        <div class="envelope" data-letter="2">
+          <div class="env-flap"></div>
+          <div class="env-body">
+            <div class="env-seal">✦</div>
+          </div>
+          <div class="env-shadow"></div>
+        </div>
+        <p class="env-title">Antes de encontrarte</p>
+      </div>
+
+      <!-- Sobre 4 -->
+      <div class="envelope-wrap" id="env-3">
+        <div class="envelope" data-letter="3">
+          <div class="env-flap"></div>
+          <div class="env-body">
+            <div class="env-seal">✦</div>
+          </div>
+          <div class="env-shadow"></div>
+        </div>
+        <p class="env-title">Nuestra historia</p>
+      </div>
+
+    </div><!-- /letters-grid -->
+
+    <!-- Hint para continuar — aparece cuando todas están leídas -->
+    <div class="letters-continue" id="letters-continue">
+      <p class="letters-continue-text">Has leído todas las cartas.</p>
+      <button class="btn-continue letters-btn-continue" id="letters-next">
+        <span></span>
+      </button>
+    </div>
+
+    <!-- Contador de cartas leídas -->
+    <div class="letters-counter" id="letters-counter">
+      <span id="letters-read-count">0</span> / 4
+    </div>
+  </section>
+
+  <!-- MODALES DE CARTAS — fuera del flow, z-index alto -->
+
+  <!-- Modal carta 1 -->
+  <div class="letter-modal" id="modal-0">
+    <div class="letter-modal-inner">
+      <button class="letter-modal-close" data-modal="0">×</button>
+      <div class="letter-modal-scroll">
+        <h2 class="letter-modal-title">Desde el primer momento</h2>
+        <div class="letter-modal-body">
+          <p>Te amo, ¿sabes?</p>
+          <p>Desde el primer momento en el que te vi, juro que no podía dejar de verte.</p>
+          <p>Te volviste mi droga a pesar de no ser nada, y te volviste mi todo cuando tan solo te diste la vuelta porque jugaba con tu cabello en plena clase mientras moría de aburrimiento.</p>
+          <p>Y es curioso pensar en eso ahora.</p>
+          <p>Porque en ese momento ni siquiera sabía todo lo que ibas a significar para mí.</p>
+          <p>Apenas nos conocíamos cuando nos volvimos novios, pero había algo en ti que me hacía sentir como si ya te conociera desde mucho antes.</p>
+          <p>Como si, de alguna manera, ya hubiera un lugar para ti en mi vida antes de que yo siquiera supiera que estabas llegando.</p>
+          <p>Y desde entonces han pasado tantas cosas...</p>
+          <p>Hemos tenido momentos bonitos, momentos difíciles, días en los que hablamos muchísimo y otros en los que apenas podemos hacerlo.</p>
+          <p>Pero incluso con la distancia, incluso cuando no puedo tenerte a mi lado, sigues siendo esa persona en la que pienso sin darme cuenta.</p>
+          <p>A veces me pregunto cómo alguien puede llegar a convertirse en una parte tan grande de tu vida.</p>
+          <p>Y luego te recuerdo a ti.</p>
+          <p>Y simplemente lo entiendo.</p>
+          <p>Dios, no sabes cuánto te amo, cariño.</p>
+          <p>Y quizá nunca encuentre una manera perfecta de explicártelo.</p>
+          <p>Pero si alguna vez dudas de lo que significas para mí, quiero que recuerdes algo:</p>
+          <p>yo no quiero solamente recordar cómo comenzó nuestra historia.</p>
+          <p class="letter-emphasis">Quiero seguir escribiendo lo que viene después.</p>
+          <p class="letter-emphasis">Contigo.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal carta 2 -->
+  <div class="letter-modal" id="modal-1">
+    <div class="letter-modal-inner">
+      <button class="letter-modal-close" data-modal="1">×</button>
+      <div class="letter-modal-scroll">
+        <h2 class="letter-modal-title">En cada pensamiento</h2>
+        <div class="letter-modal-body">
+          <p>Ahora no paro de pensar en ti.</p>
+          <p>Aunque esté en la escuela, programando o haciendo circuitos no paro de pensar en ti, my love.</p>
+          <p>Es extraño cómo alguien puede estar tan lejos y aun así sentirse tan presente.</p>
+          <p>Te convertiste en una parte importante de mi vida.</p>
+          <p>Una parte que ya no imagino fuera de ella.</p>
+          <p>Tú complementas a este ser de acá de una forma que todavía me cuesta explicar.</p>
+          <p>Al despertar cada mañana, en vez de verte a mi lado, reviso mi móvil y lo primero que quiero hacer es enviarte un mensaje de "Buenos días" junto a un corazón.</p>
+          <p>Y aunque sea algo tan pequeño, para mí significa muchísimo.</p>
+          <p>Porque eres una de las primeras personas en las que pienso al despertar y una de las últimas que pasan por mi cabeza antes de dormir.</p>
+          <p>A veces quisiera poder simplemente voltearme y encontrarte ahí.</p>
+          <p>Sin una pantalla de por medio.<br/>Sin kilómetros.<br/>Sin tener que esperar a que llegue un mensaje.</p>
+          <p>Solo tú.</p>
+          <p>Aquí.</p>
+          <p>A mi lado.</p>
+          <p class="letter-emphasis">Te necesito... justo aquí a mi lado.</p>
+          <p>Y aunque ahora no pueda tenerte así, espero que algún día deje de ser un "ojalá".</p>
+          <p>Porque quiero que llegue el día en el que pueda despertar, voltearme y encontrarte conmigo.</p>
+          <p>Y entonces, en lugar de escribirte "Buenos días" por el móvil...</p>
+          <p class="letter-emphasis">solo voy a tener que decírtelo mientras te miro.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal carta 3 -->
+  <div class="letter-modal" id="modal-2">
+    <div class="letter-modal-inner">
+      <button class="letter-modal-close" data-modal="2">×</button>
+      <div class="letter-modal-scroll">
+        <h2 class="letter-modal-title">Antes de encontrarte</h2>
+        <div class="letter-modal-body">
+          <p>Al amor de mi vida.</p>
+          <p>Alguna vez soñé contigo.</p>
+          <p>No sé por qué, pero recuerdo esa sensación de tenerte tan cerca que por un momento parecía que realmente estabas ahí.</p>
+          <p>Y quizá lo más extraño es que ahora que te conozco, a veces siento que aquel sueño solamente estaba esperando a que llegaras tú.</p>
+          <p>Porque antes de saber todo de ti, ya había algo en mí que quería conocerte.</p>
+          <p>Y ahora no puedo evitar buscarte en todas partes.</p>
+          <p>En una canción.<br/>En una noche tranquila.<br/>En una mirada.<br/>En esos pequeños momentos en los que mi mente se queda en silencio y, de alguna manera, terminas apareciendo tú.</p>
+          <p>He tenido mucho tiempo para pensar en lo que quiero de mi vida.</p>
+          <p>Y cada vez que imagino mi futuro, hay algo que se repite.</p>
+          <p class="letter-emphasis">Tú.</p>
+          <p>No sé exactamente cómo será el camino que nos espera.</p>
+          <p>No sé cuántas cosas tendremos que atravesar, ni cuántos momentos difíciles habrá entre nosotros.</p>
+          <p>Pero sí sé que quiero descubrirlo contigo.</p>
+          <p>Porque ya no quiero que seas solamente alguien que aparece en mis sueños.</p>
+          <p>Quiero que algún día seas la persona que está a mi lado cuando esos sueños se conviertan en recuerdos.</p>
+          <p>Quiero conocerte en todas tus versiones.</p>
+          <p>En tus días buenos.<br/>En tus días malos.<br/>Cuando estés feliz.<br/>Cuando estés cansada.<br/>Cuando no tengas ganas de hablar.<br/>Cuando quieras contarme absolutamente todo.</p>
+          <p>Quiero estar ahí para conocer cada parte de ti.</p>
+          <p>No sé si fue suerte.<br/>No sé si fue coincidencia.</p>
+          <p>Solo sé que entre tantas personas, terminé encontrándote a ti.</p>
+          <p>Y no quiero imaginar qué habría pasado si nunca nos hubiéramos conocido.</p>
+          <p>Porque ahora que estás aquí, no quiero una vida en la que no estés.</p>
+          <p class="letter-emphasis">Eras tú.</p>
+          <p>A mi sueño que terminó siendo real.</p>
+          <p class="letter-emphasis">Te quiero, mi vida.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal carta 4 -->
+  <div class="letter-modal" id="modal-3">
+    <div class="letter-modal-inner">
+      <button class="letter-modal-close" data-modal="3">×</button>
+      <div class="letter-modal-scroll">
+        <h2 class="letter-modal-title">Nuestra historia</h2>
+        <div class="letter-modal-body">
+          <p>Para ti.</p>
+          <p>No sé si alguna vez voy a encontrar las palabras exactas para explicarte todo lo que significas para mí.</p>
+          <p>He intentado hacerlo de muchas formas.</p>
+          <p>Te he hablado de cómo comenzó todo, de cómo llegaste a mi vida, de cuánto pienso en ti y de todas esas veces en las que desearía tenerte aquí a mi lado.</p>
+          <p>Y cuando pienso en cómo empezó nuestra historia, todavía me parece increíble.</p>
+          <p>Nos conocimos por internet.</p>
+          <p>Entre una pantalla, mensajes y dos personas que probablemente nunca imaginaron hasta dónde iba a llegar todo esto.</p>
+          <p>Al principio eras alguien a quien apenas conocía.</p>
+          <p>Y ahora eres una de las personas más importantes de mi vida.</p>
+          <p>Qué extraño pensar que alguien que estaba tan lejos pudo terminar sintiéndose tan cerca.</p>
+          <p>Pero supongo que así fue como empezó todo.</p>
+          <p>Primero fueron mensajes.<br/>Después conversaciones.<br/>Después recuerdos.</p>
+          <p>Y poco a poco te convertiste en parte de mi vida.</p>
+          <p>Estás en mis mañanas cuando busco mi teléfono para escribirte un "buenos días".</p>
+          <p>Estás en mis noches cuando pienso en cómo sería tenerte aquí.</p>
+          <p>Estás en las cosas que me hacen sonreír sin darme cuenta.</p>
+          <p>Estás en los planes que todavía no existen, pero que algún día quiero vivir contigo.</p>
+          <p>Y también estás en mis sueños.</p>
+          <p>En esos sueños donde la distancia no existe y simplemente puedo estar a tu lado.</p>
+          <p>No sé qué nos espera.<br/>Quizá tendremos días increíbles.<br/>Quizá habrá momentos difíciles.</p>
+          <p>Pero quiero descubrir todo eso contigo.</p>
+          <p>Quiero seguir conociéndote.<br/>Seguir haciéndote reír.<br/>Seguir molestándote.<br/>Seguir diciéndote cuánto te quiero aunque probablemente ya estés cansada de escucharlo.</p>
+          <p>Quiero algún día dejar de escribirte que quisiera tenerte a mi lado y simplemente poder voltearme y encontrarte ahí.</p>
+          <p>Quiero que algún día toda esta distancia sea solamente un recuerdo.</p>
+          <p>Y que podamos mirar atrás y decir:</p>
+          <p class="letter-emphasis">"¿te acuerdas cuando todo comenzó por internet?"</p>
+          <p>Porque quiero llegar a ese momento.</p>
+          <p>Y si pudiera volver al principio...</p>
+          <p class="letter-emphasis">te volvería a elegir.</p>
+          <p>Una y otra vez.</p>
+          <p>Porque entre tantas personas que existen en este mundo, tuve la suerte de encontrarte a ti.</p>
+          <p>Y si todo lo que hice para este aniversario pudiera convertirse en una sola cosa, no sería el libro, ni las estrellas, ni los universos que te mostré.</p>
+          <p>Sería esto:</p>
+          <p class="letter-emphasis">recordarte que detrás de cada palabra, cada recuerdo, cada estrella y cada línea de código hubo alguien pensando en ti.</p>
+          <p>Alguien que te quiere muchísimo.</p>
+          <p>Alguien que todavía tiene ganas de escribir contigo muchísimas páginas más.</p>
+          <p>Esta no es una despedida.</p>
+          <p>Es solamente otra página de nuestra historia.</p>
+          <p>Una historia que comenzó de una manera que ninguno de los dos podía imaginar...</p>
+          <p>y que todavía está muy lejos de terminar.</p>
+          <p class="letter-emphasis">Feliz aniversario, Kizunae.</p>
+          <p class="letter-love">Te quiero, mi vida.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIVERSO -->
+  <section id="scene-universe" class="scene">
+    <canvas id="deep-canvas"></canvas>
+    <div class="universe-text" id="universe-text">
+      <p class="universe-line" data-index="0">A veces pienso que el universo es demasiado grande<br/>para que podamos comprenderlo.</p>
+      <p class="universe-line" data-index="1">Millones de estrellas, mundos que nunca conoceremos<br/>y caminos que jamás llegaremos a recorrer.</p>
+      <p class="universe-line" data-index="2">Y aun así, entre todo lo que existe,<br/>tuve la suerte de encontrarte a ti.</p>
+    </div>
+
+    <div class="universe-text universe-text-2" id="universe-text-2">
+      <p class="universe-line" data-index="0">De todos los lugares donde podía estar mi corazón,<br/>terminó encontrando su hogar en ti.</p>
+      <p class="universe-line" data-index="1">Quizá por eso me gusta mirar las estrellas.</p>
+      <p class="universe-line" data-index="2">Porque cuando pienso en lo inmenso que es todo esto,<br/>tú sigues siendo lo más bonito que encontré.</p>
+    </div>
+
+    <div class="universe-text universe-text-3" id="universe-text-3">
+      <p class="universe-line" data-index="0">Y si algún día llegamos a conocer todos esos lugares<br/>que hoy solo podemos imaginar,<br/>espero que sea juntos.</p>
+      <p class="universe-line" data-index="1">Porque no quiero solamente compartir contigo<br/>este pequeño universo que hice.</p>
+      <p class="universe-line universe-line-special" data-index="2">Quiero descubrir contigo todos los que<br/>todavía nos quedan por vivir.</p>
+    </div>
+    <div class="universe-hint">Mueve el cursor · Toca las estrellas</div>
+    <button class="btn-continue" data-next="scene-love"><span></span></button>
+  </section>
+
+  <!-- TE QUIERO -->
+  <section id="scene-love" class="scene">
+    <canvas id="love-canvas"></canvas>
+    <div class="love-content">
+      <p class="love-main" id="love-main">Te quiero, mi vida.</p>
+      <p class="love-sub" id="love-sub">Y todavía quiero escribir muchísimo más<br/>de nuestra historia.</p>
+    </div>
+    <button class="btn-continue" data-next="scene-moon"><span></span></button>
+  </section>
+
+  <!-- FALSO FINAL -->
+  <section id="scene-false-end" class="scene">
+    <div class="false-end-content">
+      <p class="false-line" data-index="0">Feliz aniversario, Kizunae.</p>
+      <p class="false-line" data-index="1">Espero que te haya gustado.</p>
+      <p class="false-line small" data-index="2">Eso es todo.</p>
+      <button class="btn-close-fake" id="btn-close" onclick="triggerFalseClose()">Cerrar</button>
+    </div>
+  </section>
+
+  <!-- ESPERA -->
+  <section id="scene-wait" class="scene">
+    <p class="wait-text" id="wait-text">...espera.</p>
+  </section>
+
+  <!-- REVELACIÓN -->
+  <section id="scene-reveal" class="scene">
+    <canvas id="reveal-canvas"></canvas>
+    <div class="reveal-content">
+      <p class="reveal-line" data-index="0">¿De verdad creíste que esto era todo?</p>
+      <p class="reveal-line italic" data-index="1">Esto solamente era una pequeña parte.</p>
+    </div>
+    <button class="btn-continue" data-next="scene-gift"><span></span></button>
+  </section>
+
+  <!-- SEGUNDO REGALO -->
+  <section id="scene-gift" class="scene">
+    <canvas id="gift-canvas"></canvas>
+    <div class="gift-content">
+      <p class="gift-line large" data-index="0">Hay algo más para ti.</p>
+      <p class="gift-line" data-index="1">Algo que todavía estoy construyendo.</p>
+      <p class="gift-line glow-text" data-index="2">Nuestro mundo juntos.</p>
+    </div>
+    <button class="btn-continue" data-next="scene-dev"><span></span></button>
+  </section>
+
+  <!-- VIDEOJUEGO EN DESARROLLO -->
+  <section id="scene-dev" class="scene">
+    <canvas id="dev-canvas"></canvas>
+    <div class="dev-content">
+      <div class="dev-world-preview">
+        <svg class="world-svg" viewBox="0 0 800 300" preserveAspectRatio="xMidYMax meet">
+          <ellipse cx="400" cy="260" rx="280" ry="40" fill="rgba(30,80,180,0.18)" />
+          <ellipse cx="400" cy="268" rx="220" ry="22" fill="rgba(100,160,255,0.10)" />
+          <rect x="60" y="170" width="18" height="90" rx="4" fill="#0a1530"/>
+          <ellipse cx="69" cy="162" rx="32" ry="40" fill="#0a1530"/>
+          <rect x="110" y="185" width="14" height="75" rx="3" fill="#0a1530"/>
+          <ellipse cx="117" cy="178" rx="26" ry="34" fill="#0a1530"/>
+          <rect x="150" y="195" width="12" height="65" rx="3" fill="#0a1530"/>
+          <ellipse cx="156" cy="188" rx="22" ry="28" fill="#0a1530"/>
+          <rect x="710" y="170" width="18" height="90" rx="4" fill="#0a1530"/>
+          <ellipse cx="719" cy="162" rx="32" ry="40" fill="#0a1530"/>
+          <rect x="660" y="185" width="14" height="75" rx="3" fill="#0a1530"/>
+          <ellipse cx="667" cy="178" rx="26" ry="34" fill="#0a1530"/>
+          <rect x="620" y="195" width="12" height="65" rx="3" fill="#0a1530"/>
+          <ellipse cx="626" cy="188" rx="22" ry="28" fill="#0a1530"/>
+          <rect x="360" y="200" width="80" height="55" rx="3" fill="#0b1a3a"/>
+          <polygon points="340,205 400,155 460,205" fill="#0d1f45"/>
+          <rect x="387" y="225" width="26" height="30" rx="2" fill="#1a2a50"/>
+          <rect x="367" y="210" width="16" height="14" rx="2" fill="rgba(180,210,255,0.35)"/>
+          <rect x="417" y="210" width="16" height="14" rx="2" fill="rgba(180,210,255,0.35)"/>
+          <rect x="408" y="155" width="10" height="22" rx="2" fill="#0d1f45"/>
+          <circle cx="280" cy="252" r="5" fill="rgba(160,120,220,0.5)"/>
+          <circle cx="295" cy="248" r="4" fill="rgba(200,150,255,0.5)"/>
+          <circle cx="310" cy="253" r="4" fill="rgba(140,100,200,0.5)"/>
+          <circle cx="490" cy="252" r="5" fill="rgba(160,120,220,0.5)"/>
+          <circle cx="510" cy="248" r="4" fill="rgba(200,150,255,0.5)"/>
+          <circle cx="525" cy="253" r="4" fill="rgba(140,100,200,0.5)"/>
+          <rect x="0" y="258" width="800" height="42" rx="0" fill="#06101f"/>
+        </svg>
+      </div>
+      <div class="dev-title-block">
+        <p class="dev-label">NUESTRO MUNDO JUNTOS</p>
+        <p class="dev-status">En desarrollo...</p>
+        <p class="dev-date">06 · 10 · 2026</p>
+      </div>
+    </div>
+    <button class="btn-continue" data-next="scene-final"><span></span></button>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       ESCENA LUNA — la más íntima de todo el proyecto
+       Flujo: scene-love → scene-moon → scene-false-end
+  ═══════════════════════════════════════════════════ -->
+  <section id="scene-moon" class="scene">
+    <canvas id="moon-canvas"></canvas>
+
+    <!-- Silueta de dos personas sentadas -->
+    <div class="moon-silhouette" id="moon-silhouette">
+      <svg class="silhouette-svg" viewBox="0 0 400 140" preserveAspectRatio="xMidYMax meet">
+        <!-- Suelo / colina -->
+        <path d="M0 130 Q100 110 200 118 Q300 126 400 120 L400 140 L0 140 Z"
+              fill="#02050e"/>
+        <!-- Hierba sutil -->
+        <path d="M60 124 Q62 118 64 124" stroke="#02050e" stroke-width="1.5" fill="none"/>
+        <path d="M75 122 Q77 115 79 122" stroke="#02050e" stroke-width="1.5" fill="none"/>
+        <path d="M320 122 Q322 116 324 122" stroke="#02050e" stroke-width="1.5" fill="none"/>
+        <path d="M335 124 Q337 118 339 124" stroke="#02050e" stroke-width="1.5" fill="none"/>
+        <!-- Persona izquierda (él) — sentado -->
+        <g transform="translate(168, 88)">
+          <!-- cuerpo -->
+          <path d="M0 0 Q-4 10 -8 30 Q-6 32 0 32 Q4 28 6 30 Q8 20 6 0 Z"
+                fill="#02050e"/>
+          <!-- cabeza -->
+          <circle cx="1" cy="-8" r="7" fill="#02050e"/>
+          <!-- brazo izquierdo hacia ella -->
+          <path d="M4 8 Q14 12 22 10" stroke="#02050e" stroke-width="3"
+                stroke-linecap="round" fill="none"/>
+          <!-- piernas sentadas -->
+          <path d="M-8 30 Q-12 38 -6 40" stroke="#02050e" stroke-width="3.5"
+                stroke-linecap="round" fill="none"/>
+          <path d="M6 30 Q10 38 4 40" stroke="#02050e" stroke-width="3.5"
+                stroke-linecap="round" fill="none"/>
+        </g>
+        <!-- Persona derecha (ella) — sentada, ligeramente más pequeña -->
+        <g transform="translate(196, 92)">
+          <!-- cuerpo -->
+          <path d="M0 0 Q-3 8 -5 26 Q-2 28 2 26 Q5 22 7 26 Q8 16 5 0 Z"
+                fill="#02050e"/>
+          <!-- cabeza con cabello largo -->
+          <circle cx="1" cy="-7" r="6" fill="#02050e"/>
+          <path d="M4 -12 Q12 -6 10 8 Q8 14 6 18" stroke="#02050e"
+                stroke-width="3" stroke-linecap="round" fill="none"/>
+          <!-- piernas sentadas -->
+          <path d="M-5 26 Q-8 34 -3 36" stroke="#02050e" stroke-width="3"
+                stroke-linecap="round" fill="none"/>
+          <path d="M7 26 Q10 34 5 36" stroke="#02050e" stroke-width="3"
+                stroke-linecap="round" fill="none"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Texto narrativo por bloques -->
+    <div class="moon-text" id="moon-text"></div>
+
+    <!-- Botón continuar — aparece solo al final -->
+    <button class="btn-continue moon-continue" id="moon-continue" data-next="scene-false-end">
+      <span></span>
+    </button>
+  </section>
+
+  <!-- FINAL -->
+  <section id="scene-final" class="scene">
+    <canvas id="final-canvas"></canvas>
+    <div class="final-content">
+      <p class="final-line" data-index="0">Esto fue solamente mi manera de decirte<br/>feliz aniversario.</p>
+      <p class="final-line" data-index="1">Lo que viene después...</p>
+      <p class="final-line glow-text large" data-index="2">es un mundo que estoy construyendo<br/>para nosotros.</p>
+      <div class="final-divider" data-index="3">· · ·</div>
+      <p class="final-line special" data-index="4">Nos vemos el 6 de octubre.</p>
+      <p class="final-line love-ending" data-index="5">Te quiero, mi vida.</p>
+    </div>
+    <div class="final-restart" id="final-restart">
+      <span>↺ Volver al inicio</span>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
